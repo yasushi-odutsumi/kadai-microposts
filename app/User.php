@@ -9,6 +9,20 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     use Notifiable;
+    
+    /**
+     * このユーザが所有する投稿。（ Micropostモデルとの関係を定義）
+     */
+    public function microposts()
+    {
+        return $this->hasMany(Micropost::class);
+    }
+    
+    
+    public function loadRelationshipCounts()
+    {
+        $this->loadCount('microposts');
+    }
 
     /**
      * The attributes that are mass assignable.
