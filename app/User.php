@@ -104,9 +104,64 @@ class User extends Authenticatable
     
     public function loadRelationshipCounts()
     {
-        $this->loadCount(['microposts', 'followings', 'followers']);
+        $this->loadCount(['microposts', 'followings', 'followers', 'favorites']);
     }
-
+    
+    /**
+     * このユーザがお気に入りしている１件以上のmicropost
+     */
+    public function favorites()
+    {
+        return $this->belongsToMany(Micropost::class, 'favorites' , 'user_id' , 'micropost_id')->withTimestamps();
+    }
+    
+    /**
+     * micropost_idで指定されたmicropostをお気に入り登録する
+     */
+     public function favorite($micropostId)
+    {
+        // すでにお気に入り登録しているかの確認
+        $exist = $this->is_favorite($micropostId);
+        
+        if($exist){
+            // すでにお気に入り登録していればお気に入り登録を外す
+            return false;
+        }else{
+            // お気に入り登録していなければ、お気に入り登録する
+            $this->favorites()->attach($micropostId);
+        }
+    }
+    
+    /**
+     * micropost_idで指定されたmicropostをお気に入り登録を外す
+     */
+    public function unfavorite($micropostId)
+    {
+        // すでにフォローしているかの確認
+        $exist = $this->is_favorite($micropostId);
+        
+        if($exist){
+            // すでにフォローしていれば外す
+            $this->favorites()->detach($micropostId);
+            return true;
+        }else{
+            // 未フォローであれば何もしない
+            return false;
+        }
+    
+    }
+    
+    /**
+     * micropost_idで指定されたmicropostをお気に入り登録を外す
+     */
+    public function is_favorite($micropostId)
+    {
+        
+        return $this->favorites()->where('micropost_id' , $micropostId)->exists();
+    }
+    
+    
+    
     /**
      * The attributes that are mass assignable.
      *
